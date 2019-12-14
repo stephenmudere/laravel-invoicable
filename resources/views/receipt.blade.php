@@ -78,7 +78,7 @@
             </td>
         </tr>
         <tr valign="top">
-            <td>
+            <td width="100%">
                 <!-- Invoice Info -->
                 <p>
                     <strong>Invoice Reference:</strong> {{ $invoice->reference }}<br>

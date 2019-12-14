@@ -91,7 +91,7 @@ class Invoice extends Model
      * @param  array  $data
      * @return string
      */
-    public function pdf(array $data = [])
+    public function pdf(array $data = [],$filename=null,$stream=false)
     {
         if (! defined('DOMPDF_ENABLE_AUTOLOAD')) {
             define('DOMPDF_ENABLE_AUTOLOAD', false);
@@ -100,11 +100,17 @@ class Invoice extends Model
         if (file_exists($configPath = base_path().'/vendor/dompdf/dompdf/dompdf_config.inc.php')) {
             require_once $configPath;
         }
-
+        //echo $this->view($data)->render();exit();
         $dompdf = new Dompdf;
         $dompdf->loadHtml($this->view($data)->render());
         $dompdf->render();
-        return $dompdf->output();
+        //\Storage::put($filename, $dompdf->output());
+        \Storage::disk('invoices')->put($filename, $dompdf->output());
+
+        if ($stream) {
+            return $dompdf->stream($filename);
+        }
+        
     }
 
     /**
@@ -113,16 +119,11 @@ class Invoice extends Model
      * @param  array  $data
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function download(array $data = [])
+    public function download(array $data = [],$stream=false)
     {
         $filename = $this->reference . '.pdf';
 
-        return new Response($this->pdf($data), 200, [
-            'Content-Description' => 'File Transfer',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-            'Content-Transfer-Encoding' => 'binary',
-            'Content-Type' => 'application/pdf',
-        ]);
+        return $this->pdf($data,$filename,$stream);
     }
 
     public static function findByReference($reference)
